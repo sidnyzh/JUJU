@@ -1,12 +1,22 @@
-﻿using Business;
-using DataAccess;
-using DataAccess.Data;
+﻿using API.Middlewares.GlobalExceptionMiddleware;
+using Application.DTO.FluentValidations;
+using Application.Interfaces;
+using Application.Main;
+using Application.Mapping;
+using AutoMapper;
+using Domain.Core;
+using Domain.Entity;
+using Domain.Interfaces;
+using Domain.Interfaces.Repositories;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Repository.Data;
+using Repository.Repositories;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace ProjectAPI.API
@@ -24,11 +34,17 @@ namespace ProjectAPI.API
         public void ConfigureServices(IServiceCollection services)
         {
             //Servicios                      
-            services.AddScoped<JujuTestContext, JujuTestContext>();
-            services.AddScoped<BaseService<Customer>, BaseService<Customer>>();
-            services.AddScoped<BaseModel<Customer>, BaseModel<Customer>>();
-            services.AddScoped<BaseService<Post>, BaseService<Post>>();            
-            services.AddScoped<BaseModel<Post>, BaseModel<Post>>();
+            services.AddScoped<ICustomerDomain, CustomerDomain>();
+            services.AddScoped<IGenericRepositoriy<Customer>, GenericRepository<Customer>>();
+            services.AddScoped<ICustomerRepository, CustomerRepository>();
+            services.AddScoped<ICustomerApplication, CustomerApplication>();
+
+            services.AddScoped<IPostDomain, PostDomain>();
+            services.AddScoped<IGenericRepositoriy<Post>, GenericRepository<Post>>();
+            services.AddScoped<IPostApplication, PostApplication>();
+
+            services.AddAutoMapper(typeof(MappingProfile));
+
 
 
             //Agregar cadena de conexion al contexto
@@ -36,7 +52,9 @@ namespace ProjectAPI.API
                 options.UseSqlServer(Configuration.GetConnectionString("Development")));
 
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<CreatePostRequestValidator>())
+                ;
 
 
             // ======== CONFIGURACIÓN DE SWAGGER =========
@@ -52,10 +70,7 @@ namespace ProjectAPI.API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            app.UseMiddleware<ExceptionMiddleware>(); 
 
             // ======== CONFIGURACIÓN DE SWAGGER =========
             app.UseSwagger();

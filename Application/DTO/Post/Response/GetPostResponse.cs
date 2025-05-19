@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DataAccess.Data
+﻿namespace Application.DTO.Post.Response
 {
-    public partial class Post
+    public class GetPostResponse
     {
         public int PostId { get; set; }
         public string Title { get; set; }

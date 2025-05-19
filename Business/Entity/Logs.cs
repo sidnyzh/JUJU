@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DataAccess.Data
+namespace Domain.Entity
 {
     public partial class Logs
     {

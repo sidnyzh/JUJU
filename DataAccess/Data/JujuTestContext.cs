@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Domain.Entity;
 
-namespace DataAccess.Data
+namespace Repository.Data
 {
     public partial class JujuTestContext : DbContext
     {
@@ -22,7 +23,12 @@ namespace DataAccess.Data
         {
             modelBuilder.Entity<Customer>(entity =>
             {
-                entity.Property(e => e.Name).HasMaxLength(500);
+                entity.Property(e => e.Name).HasMaxLength(255);
+
+                entity.HasMany(c => c.Posts)
+                .WithOne(p => p.Customer) 
+                .HasForeignKey(p => p.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Logs>(entity =>
@@ -32,11 +38,11 @@ namespace DataAccess.Data
 
             modelBuilder.Entity<Post>(entity =>
             {
-                entity.Property(e => e.Body).HasMaxLength(500);
+                entity.Property(e => e.Body).HasMaxLength(100);
 
-                entity.Property(e => e.Category).HasMaxLength(500);
+                entity.Property(e => e.Category).HasMaxLength(100);
 
-                entity.Property(e => e.Title).HasMaxLength(500);
+                entity.Property(e => e.Title).HasMaxLength(255);
             });
         }
     }

@@ -1,43 +1,79 @@
-﻿using Business;
+﻿using Application.DTO.Post.Request;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-using PostEntity = DataAccess.Data.Post;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace API.Controllers.Post
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
+    [ApiController]
     public class PostController : ControllerBase
     {
-        private BaseService<PostEntity> PostService;
-        public PostController(BaseService<PostEntity> postService)
+        private readonly IPostApplication _postApplication;
+
+        /// <summary>
+        /// Constructor del controlador de Post
+        /// </summary>
+        /// <param name="postApplication">Servicio de aplicación para lógica de Post</param>
+        public PostController(IPostApplication postApplication)
         {
-            PostService = postService;
+            _postApplication = postApplication;
         }
 
-        [HttpGet()]
-        public IQueryable<PostEntity> GetAll()
+        /// <summary>
+        /// Obtiene todos los posts existentes
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
-            return PostService.GetAll();
+            var posts = await _postApplication.GetAllPosts();
+            return Ok(posts);
         }
 
-        [HttpPost()]
-        public PostEntity Create([FromBodyAttribute]  PostEntity entity)
+        /// <summary>
+        /// Crea un nuevo post
+        /// </summary>
+        /// <param name="createPost">DTO con los datos del post a crear</param>
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreatePostRequest createPost)
         {
-            return PostService.Create(entity);
+
+            await _postApplication.CreatePost(createPost);
+            return Ok();
         }
 
-        [HttpPut()]
-        public PostEntity Update([FromBodyAttribute] PostEntity entity)
+        /// <summary>
+        /// Crea múltiples posts
+        /// </summary>
+        /// <param name="createPosts">Lista de DTOs con los datos de los posts a crear</param>
+        [HttpPost("range")]
+        public async Task<IActionResult> CreateRange([FromBody] IEnumerable<CreatePostRequest> createPosts)
         {
-            return PostService.Create(entity);
+            await _postApplication.CreatePosts(createPosts);
+            return Ok();
         }
 
-        [HttpDelete()]
-        public PostEntity Delete([FromBodyAttribute] PostEntity entity)
+        /// <summary>
+        /// Actualiza un post existente
+        /// </summary>
+        /// <param name="updatePost">DTO con los datos del post a actualizar</param>
+        [HttpPut]
+        public async Task<IActionResult> Update([FromBody] UpdatePostRequest updatePost)
         {
-            return PostService.Create(entity);
+            await _postApplication.UpdatePost(updatePost);
+            return Ok();
         }
 
-
+        /// <summary>
+        /// Elimina un post por su ID
+        /// </summary>
+        /// <param name="postId">ID del post a eliminar</param>
+        [HttpDelete("{postId}")]
+        public async Task<IActionResult> Delete(int postId)
+        {
+            await _postApplication.DeletePost(postId);
+            return Ok();
+        }
     }
 }

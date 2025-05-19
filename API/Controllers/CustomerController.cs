@@ -1,50 +1,73 @@
-﻿using Business;
+﻿using Application.DTO.Customer.Request;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq;
-using CustomerEntity = DataAccess.Data.Customer;
+using System.Threading.Tasks;
 
 namespace API.Controllers.Customer
 {
-    [Route("[controller]")]
+    /// <summary>
+    /// Controlador para gestionar operaciones relacionadas con los clientes.
+    /// </summary>
+    [Route("api/[controller]")]
+    [ApiController]
     public class CustomerController : ControllerBase
     {
-        private BaseService<CustomerEntity> CustomerService;
-        public CustomerController(BaseService<CustomerEntity> customerService)
+        private readonly ICustomerApplication _customerApplication;
+
+        /// <summary>
+        /// Constructor que inyecta la lógica de aplicación para clientes.
+        /// </summary>
+        /// <param name="customerApplication">Servicio de aplicación para clientes</param>
+        public CustomerController(ICustomerApplication customerApplication)
         {
-            CustomerService = customerService;
+            _customerApplication = customerApplication;
         }
 
-
-        [HttpGet()]
-        public IQueryable<CustomerEntity> GetAll()
+        /// <summary>
+        /// Obtiene todos los clientes registrados.
+        /// </summary>
+        /// <returns>Lista de clientes</returns>
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
-            return CustomerService.GetAll();
+            var customers = await _customerApplication.GetAllCustomers();
+            return Ok(customers);
         }
 
-
-        [HttpPost()]
-        public CustomerEntity Create([FromBodyAttribute] CustomerEntity entity)
+        /// <summary>
+        /// Crea un nuevo cliente.
+        /// </summary>
+        /// <param name="createCustomer">DTO con los datos del cliente a crear</param>
+        /// <returns>Resultado de la operación</returns>
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateCustomerRequest createCustomer)
         {
-            return CreateCustomer(entity);
+            await _customerApplication.CreateCustomer(createCustomer);
+            return Ok();
         }
 
-        private CustomerEntity CreateCustomer(CustomerEntity entity)
+        /// <summary>
+        /// Actualiza un cliente existente.
+        /// </summary>
+        /// <param name="updateCustomer">DTO con los datos actualizados del cliente</param>
+        /// <returns>Resultado de la operación</returns>
+        [HttpPut]
+        public async Task<IActionResult> Update([FromBody] UpdateCustomerRequest updateCustomer)
         {
-            throw new Exception("");
-            return CustomerService.Create(entity);
+            await _customerApplication.UpdateCustomer(updateCustomer);
+            return Ok();
         }
 
-        [HttpPut()]
-        public CustomerEntity Update(CustomerEntity entity)
+        /// <summary>
+        /// Elimina un cliente y sus posts asociados.
+        /// </summary>
+        /// <param name="customerId">ID del cliente a eliminar</param>
+        /// <returns>Resultado de la operación</returns>
+        [HttpDelete("{customerId}")]
+        public async Task<IActionResult> Delete(int customerId)
         {
-            return CustomerService.Update(entity.CustomerId, entity, out bool changed);
-        }
-
-        [HttpDelete()]
-        public CustomerEntity Delete([FromBodyAttribute] CustomerEntity entity)
-        {
-            return CustomerService.Delete(entity);
+            await _customerApplication.DeleteCustome(customerId);
+            return Ok();
         }
     }
 }

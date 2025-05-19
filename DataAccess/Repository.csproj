@@ -25,4 +25,8 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Business\Domain.csproj" />
+  </ItemGroup>
+
 </Project>
